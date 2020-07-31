@@ -1,0 +1,33 @@
+{
+  "name": "crowdsale",
+  "version": "1.0.0",
+  "description": "## Test run the Smart Contracts!",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.5.1"
+  },
+  "devDependencies": {
+    "truffle-assertions": "^0.9.2"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devbootstrap/ERC-20-Token-Crowdsale-Example.git"
+  },
+  "keywords": [
+    "truffle",
+    "erc-20",
+    "token"
+  ],
+  "author": "Darren Jensen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/devbootstrap/ERC-20-Token-Crowdsale-Example/issues"
+  },
+  "homepage": "https://github.com/devbootstrap/ERC-20-Token-Crowdsale-Example#readme"
+}
