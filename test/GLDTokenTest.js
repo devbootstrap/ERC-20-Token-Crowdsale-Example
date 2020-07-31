@@ -61,4 +61,12 @@ contract('GLDToken', (accounts) => {
             );
         })
     })
+
+    describe('Mintable', () => {
+        it('should be possible for a designated minter to mint tokens', async () => {
+            let res = await instance.mint(creatorAddress, 1000)
+            let bal = await instance.balanceOf(creatorAddress)
+            assert.equal(bal.toString(), '100400', 'Unable to mint new tokens')
+        })
+    })
 });

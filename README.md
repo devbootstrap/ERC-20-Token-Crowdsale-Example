@@ -23,5 +23,3 @@ truffle test
 * Node v12.18.1
 * Web3.js v1.2.1
 * @openzeppelin/contracts@2.5.1
-
-t
