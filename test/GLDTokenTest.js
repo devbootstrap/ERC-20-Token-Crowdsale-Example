@@ -1,33 +1,39 @@
-var GLDToken = artifacts.require("GLDToken");
+const GLDToken = artifacts.require("GLDToken");
 const truffleAssert = require('truffle-assertions');
+const BN = web3.utils.BN;
+
+require('chai')
+  .use(require('chai-bn')(BN))
+  .should();
 
 contract('GLDToken', (accounts) => {
     const emptyAddress = '0x0000000000000000000000000000000000000000'
-    var creatorAddress = accounts[0];
-    var firstOwnerAddress = accounts[1];
-    var secondOwnerAddress = accounts[2];
-    var externalAddress = accounts[3];
-    var unprivilegedAddress = accounts[4]
-    let instance;
+    let creatorAddress = accounts[0];
+    let firstOwnerAddress = accounts[1];
+    let secondOwnerAddress = accounts[2];
+    let externalAddress = accounts[3];
+    let unprivilegedAddress = accounts[4]
+    let instance
+    const _symbol = 'GLD'
+    const _name = 'Gold'
+    const _supply = new BN('100000')
 
      beforeEach(async () => {
-        instance = await GLDToken.deployed();
+        instance = await GLDToken.deployed()
     })
 
     describe('token name, symbol and total supply metadata', () => {
         it('name() should return the token name', async () => {
-            // let instance = await GLDToken.deployed();
             let name = await instance.name();
-            assert.equal(name, 'Gold')
+            name.should.equal(_name)
         })
         it('symbol() should return the token symbol', async () => {
-            // let instance = await GLDToken.deployed();
             let symbol = await instance.symbol();
-            assert.equal(symbol, 'GLD')
+            symbol.should.equal(_symbol)
         })
         it('should have a totalsupply as expected', async ()=>{
             let ts = await instance.totalSupply()
-            assert.equal(ts.toString(), '100000', 'Unexpected Total Supply')
+            ts.should.be.a.bignumber.that.equals(_supply);
         })
     })
 
@@ -67,6 +73,18 @@ contract('GLDToken', (accounts) => {
             let res = await instance.mint(creatorAddress, 1000)
             let bal = await instance.balanceOf(creatorAddress)
             assert.equal(bal.toString(), '100400', 'Unable to mint new tokens')
+        })
+        it('should not be possible for a non minter role address to mint coins', async () => {
+            await truffleAssert.reverts(
+                instance.mint(firstOwnerAddress, 1000, {from: firstOwnerAddress}),
+                "MinterRole: caller does not have the Minter role"
+            )
+        })
+        it('should allow a new minter to mint the token', () => {
+            // here the contract owner adds the firstOwner as a new minter
+            instance.addMinter(firstOwnerAddress)
+            // so that now they can mint all they like!
+            instance.mint(firstOwnerAddress, 1000, {from: firstOwnerAddress})
         })
     })
 });
