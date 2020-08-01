@@ -22,10 +22,11 @@ describe('Crowdsale', function () {
   const value = ether('4');
   const tokenSupply = new BN('10').pow(new BN('22'));
   const expectedTokenAmount = rate.mul(value);
+  const cap = ether('10');
 
   it('requires a non-null token', async function () {
     await expectRevert(
-      Crowdsale.new(rate, wallet, ZERO_ADDRESS),
+      Crowdsale.new(rate, wallet, ZERO_ADDRESS, cap),
       'Crowdsale: token is the zero address'
     );
   });
@@ -37,19 +38,19 @@ describe('Crowdsale', function () {
 
     it('requires a non-zero rate', async function () {
       await expectRevert(
-        Crowdsale.new(0, wallet, this.token.address), 'Crowdsale: rate is 0'
+        Crowdsale.new(0, wallet, this.token.address, cap), 'Crowdsale: rate is 0'
       );
     });
 
     it('requires a non-null wallet', async function () {
       await expectRevert(
-        Crowdsale.new(rate, ZERO_ADDRESS, this.token.address), 'Crowdsale: wallet is the zero address'
+        Crowdsale.new(rate, ZERO_ADDRESS, this.token.address, cap), 'Crowdsale: wallet is the zero address'
       );
     });
 
     context('once deployed', async function () {
       beforeEach(async function () {
-        this.crowdsale = await Crowdsale.new(rate, wallet, this.token.address);
+        this.crowdsale = await Crowdsale.new(rate, wallet, this.token.address, cap);
         await this.token.transfer(this.crowdsale.address, tokenSupply);
       });
 
