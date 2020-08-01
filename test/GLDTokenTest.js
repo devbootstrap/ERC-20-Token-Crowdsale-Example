@@ -1,13 +1,17 @@
 const GLDToken = artifacts.require("GLDToken");
-const truffleAssert = require('truffle-assertions');
-const BN = web3.utils.BN;
+const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { ZERO_ADDRESS } = constants;
 
 require('chai')
   .use(require('chai-bn')(BN))
   .should();
 
+const {
+    shouldBehaveLikeERC20,
+} = require('./ERC20.behavior');
+
+
 contract('GLDToken', (accounts) => {
-    const emptyAddress = '0x0000000000000000000000000000000000000000'
     let creatorAddress = accounts[0];
     let firstOwnerAddress = accounts[1];
     let secondOwnerAddress = accounts[2];
@@ -16,53 +20,63 @@ contract('GLDToken', (accounts) => {
     let instance
     const _symbol = 'GLD'
     const _name = 'Gold'
-    const _supply = new BN('100000')
+    const _supply = new BN(100000)
+    const _decimals = new BN(18)
 
-     beforeEach(async () => {
-        instance = await GLDToken.deployed()
+    describe('ERC20 Token Behaviour', () => {
+        beforeEach(async function () {
+            this.token = await GLDToken.new(_supply)
+        })
+
+        shouldBehaveLikeERC20('ERC20', _supply, creatorAddress, firstOwnerAddress, unprivilegedAddress);
+    })
+
+
+    beforeEach(async () => {
+        token = await GLDToken.deployed()
     })
 
     describe('token name, symbol and total supply metadata', () => {
         it('name() should return the token name', async () => {
-            let name = await instance.name();
+            let name = await token.name();
             name.should.equal(_name)
         })
         it('symbol() should return the token symbol', async () => {
-            let symbol = await instance.symbol();
+            let symbol = await token.symbol();
             symbol.should.equal(_symbol)
         })
-        it('should have a totalsupply as expected', async ()=>{
-            let ts = await instance.totalSupply()
-            ts.should.be.a.bignumber.that.equals(_supply);
-        })
+        it('has an amount of decimals', async function () {
+            let decimals = await token.decimals()
+            decimals.should.be.a.bignumber.that.equals(_decimals);
+        });
     })
 
     describe('deployers balance', () => {
         it('should have the balance of the tokens in the deployer address', async () => {
-            let bal = await instance.balanceOf(creatorAddress)
+            let bal = await token.balanceOf(creatorAddress)
             assert.equal(bal.toString(), '100000', 'Creator did not receive tokens')
         })
     })
 
     describe('transfer to another address', () => {
         it('should update the other address balance', async () => {
-            await instance.transfer(firstOwnerAddress, 300)
-            let firstOwnerBal = await instance.balanceOf(firstOwnerAddress)
-            let creatorBal = await instance.balanceOf(creatorAddress)
+            await token.transfer(firstOwnerAddress, 300)
+            let firstOwnerBal = await token.balanceOf(firstOwnerAddress)
+            let creatorBal = await token.balanceOf(creatorAddress)
             assert.equal(firstOwnerBal.toString(), '300', 'First owner did not receive transfer')
             assert.equal(creatorBal.toString(), '99700', 'First owner did not receive transfer')
         })
         it('should emit a Transfer event', async () => {
-            let res = await instance.transfer(firstOwnerAddress, 300)
-            truffleAssert.eventEmitted(res, 'Transfer', (e) => {
+            let res = await token.transfer(firstOwnerAddress, 300)
+            expectEvent(res, 'Transfer', (e) => {
                 return  e.from == creatorAddress &&
                         e.to == firstOwnerAddress &&
                         e.value == 300
             })
         })
         it('should fail if the recipient address is a 0x0 address', async () => {
-            await truffleAssert.reverts(
-                instance.transfer(emptyAddress, 300),
+            await expectRevert(
+                token.transfer(ZERO_ADDRESS, 300),
                 "ERC20: transfer to the zero address"
             );
         })
@@ -70,21 +84,21 @@ contract('GLDToken', (accounts) => {
 
     describe('Mintable', () => {
         it('should be possible for a designated minter to mint tokens', async () => {
-            let res = await instance.mint(creatorAddress, 1000)
-            let bal = await instance.balanceOf(creatorAddress)
+            let res = await token.mint(creatorAddress, 1000)
+            let bal = await token.balanceOf(creatorAddress)
             assert.equal(bal.toString(), '100400', 'Unable to mint new tokens')
         })
         it('should not be possible for a non minter role address to mint coins', async () => {
-            await truffleAssert.reverts(
-                instance.mint(firstOwnerAddress, 1000, {from: firstOwnerAddress}),
+            await expectRevert(
+                token.mint(firstOwnerAddress, 1000, {from: firstOwnerAddress}),
                 "MinterRole: caller does not have the Minter role"
-            )
+            );
         })
         it('should allow a new minter to mint the token', () => {
             // here the contract owner adds the firstOwner as a new minter
-            instance.addMinter(firstOwnerAddress)
+            token.addMinter(firstOwnerAddress)
             // so that now they can mint all they like!
-            instance.mint(firstOwnerAddress, 1000, {from: firstOwnerAddress})
+            token.mint(firstOwnerAddress, 1000, {from: firstOwnerAddress})
         })
     })
 });
