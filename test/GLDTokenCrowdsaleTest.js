@@ -1,3 +1,10 @@
+/*
+  *
+  * Tests cases brought in from OpenZeppelin test repo here: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v2.5.0/test/crowdsale/Crowdsale.test.js
+  *
+  *
+*/
+
 const { accounts, contract } = require('@openzeppelin/test-environment');
 
 const { balance, BN, constants, ether, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
