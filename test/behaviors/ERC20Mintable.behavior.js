@@ -1,3 +1,9 @@
+/*
+  *
+  * Behavior tests cases brought in from OpenZeppelin test repo here: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v2.5.0/test/token/ERC20/behaviors/ERC20Mintable.behavior.js
+  *
+  *
+*/
 const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 const { ZERO_ADDRESS } = constants;
 
