@@ -52,6 +52,7 @@ describe('Crowdsale', function () {
       beforeEach(async function () {
         this.crowdsale = await Crowdsale.new(rate, wallet, this.token.address, cap);
         await this.token.transfer(this.crowdsale.address, tokenSupply);
+        await this.token.addMinter(this.crowdsale.address);
       });
 
       describe('accepting payments', function () {
