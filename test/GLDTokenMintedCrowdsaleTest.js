@@ -7,7 +7,7 @@
 
 const { accounts, contract } = require('@openzeppelin/test-environment');
 
-const { BN, ether } = require('@openzeppelin/test-helpers');
+const { BN, ether, time } = require('@openzeppelin/test-helpers');
 const { shouldBehaveLikeMintedCrowdsale } = require('./behaviors/MintedCrowdsale.behavior');
 
 const { expect } = require('chai');
@@ -25,8 +25,10 @@ describe('MintedCrowdsale', function () {
 
   describe('using ERC20Mintable', function () {
     beforeEach(async function () {
+      this.openingTime = await time.latest()
+      this.closingTime = this.openingTime.add(time.duration.days(1))
       this.token = await ERC20Mintable.new(_supply, { from: deployer });
-      this.crowdsale = await MintedCrowdsaleImpl.new(rate, wallet, this.token.address, cap);
+      this.crowdsale = await MintedCrowdsaleImpl.new(rate, wallet, this.token.address, cap, this.openingTime, this.closingTime);
 
       await this.token.addMinter(this.crowdsale.address, { from: deployer });
       await this.token.renounceMinter({ from: deployer });

@@ -6,7 +6,7 @@
 */
 const { accounts, contract } = require('@openzeppelin/test-environment');
 
-const { BN, ether, expectRevert } = require('@openzeppelin/test-helpers');
+const { BN, ether, expectRevert, time } = require('@openzeppelin/test-helpers');
 
 const { expect } = require('chai');
 
@@ -22,18 +22,22 @@ describe('CappedCrowdsale', function () {
   const tokenSupply = new BN('10').pow(new BN('22'));
 
   beforeEach(async function () {
+    this.openingTime = await time.latest()
+    this.closingTime = this.openingTime.add(time.duration.days(1))
     this.token = await SimpleToken.new(tokenSupply);
   });
 
   it('rejects a cap of zero', async function () {
-    await expectRevert(CappedCrowdsaleImpl.new(rate, wallet, this.token.address, 0),
+    await expectRevert(CappedCrowdsaleImpl.new(rate, wallet, this.token.address, 0, this.openingTime, this.closingTime),
       'CappedCrowdsale: cap is 0'
     );
   });
 
   context('with crowdsale', function () {
     beforeEach(async function () {
-      this.crowdsale = await CappedCrowdsaleImpl.new(rate, wallet, this.token.address, cap);
+      this.openingTime = await time.latest()
+      this.closingTime = this.openingTime.add(time.duration.days(1))
+      this.crowdsale = await CappedCrowdsaleImpl.new(rate, wallet, this.token.address, cap, this.openingTime, this.closingTime);
       await this.token.transfer(this.crowdsale.address, tokenSupply);
       await this.token.addMinter(this.crowdsale.address);
     });

@@ -7,10 +7,11 @@
 
 const { accounts, contract } = require('@openzeppelin/test-environment');
 
-const { balance, BN, constants, ether, expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { balance, BN, constants, ether, expectEvent, expectRevert, time } = require('@openzeppelin/test-helpers');
 const { ZERO_ADDRESS } = constants;
 
 const { expect } = require('chai');
+const { italic } = require('ansi-colors');
 
 const Crowdsale = contract.fromArtifact('GLDTokenCrowdsale');
 const SimpleToken = contract.fromArtifact('GLDToken');
@@ -25,8 +26,10 @@ describe('Crowdsale', function () {
   const cap = ether('10');
 
   it('requires a non-null token', async function () {
+    this.openingTime = await time.latest()
+    this.closingTime = this.openingTime.add(time.duration.days(1))
     await expectRevert(
-      Crowdsale.new(rate, wallet, ZERO_ADDRESS, cap),
+      Crowdsale.new(rate, wallet, ZERO_ADDRESS, cap, openingTime, closingTime),
       'Crowdsale: token is the zero address'
     );
   });
@@ -38,22 +41,24 @@ describe('Crowdsale', function () {
 
     it('requires a non-zero rate', async function () {
       await expectRevert(
-        Crowdsale.new(0, wallet, this.token.address, cap), 'Crowdsale: rate is 0'
+        Crowdsale.new(0, wallet, this.token.address, cap,  1596350871, 1596350880), 'Crowdsale: rate is 0'
       );
     });
 
     it('requires a non-null wallet', async function () {
       await expectRevert(
-        Crowdsale.new(rate, ZERO_ADDRESS, this.token.address, cap), 'Crowdsale: wallet is the zero address'
+        Crowdsale.new(rate, ZERO_ADDRESS, this.token.address, cap,  1596350871, 1596350880), 'Crowdsale: wallet is the zero address'
       );
     });
 
     context('once deployed', async function () {
       beforeEach(async function () {
-        this.crowdsale = await Crowdsale.new(rate, wallet, this.token.address, cap);
+        this.openingTime = await time.latest()
+        this.closingTime = this.openingTime.add(time.duration.days(1))
+        this.crowdsale = await Crowdsale.new(rate, wallet, this.token.address, cap, this.openingTime, this.closingTime);
         await this.token.transfer(this.crowdsale.address, tokenSupply);
         await this.token.addMinter(this.crowdsale.address);
-      });
+      })
 
       describe('accepting payments', function () {
         describe('bare payments', function () {
