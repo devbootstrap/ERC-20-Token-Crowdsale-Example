@@ -26,8 +26,8 @@ describe('Crowdsale', function () {
   const cap = ether('10');
 
   it('requires a non-null token', async function () {
-    this.openingTime = await time.latest()
-    this.closingTime = this.openingTime.add(time.duration.days(1))
+    openingTime = await time.latest()
+    closingTime = openingTime.add(time.duration.days(1))
     await expectRevert(
       Crowdsale.new(rate, wallet, ZERO_ADDRESS, cap, openingTime, closingTime),
       'Crowdsale: token is the zero address'
